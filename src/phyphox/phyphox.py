@@ -307,16 +307,25 @@ class PhyphoxLogger():
         """
         return self.send_url("time")
 
-    def export_file(self, filetype=0):
+    def export_file(self, filetype=0, filename="data.xls"):
         """
-        export experimental data in a file
+        retrieve all recorded data in a single file
+        format can be 
+        0 for xls
+        1 zip file included csv with comma separator and decimal point
+        2 zip file included csv with tabulator separator and decimal point
+        3 zip file included csv with semicolon separator and decimal point
+        4 zip file included csv with tabulator separator and decimal comma
+        5 zip file included csv with semicolon separator and decimal comma        
         """
         url = self.base_url + "/export?format=" + str(filetype)
         with urllib.request.urlopen(url) as reponse:
             reponse = reponse.read()
         # self.__config = json.loads(reponse)
         logging.info("CONFIG:\n%s", str(reponse))
-        self.__experiment = Experiment(self.__req_answers["config"])
+        with open(filename,"wb") as fd:
+            fd.write(reponse)
+        
 
     def buffer_needed(self, l_exp=None):
         """
