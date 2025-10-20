@@ -331,13 +331,14 @@ class PhyphoxLogger():
         """
         Select buffer in phyphox config
         if parameter is None all buffer are selected
-        otherwise l_exp is list of tuple (id, b_id1, ...) where
+        otherwise l_exp is list of tuple id, (b_id1, ...) where
         id is source index in config data and
         b_idx is buffer index in source list.
         """
         exp = self.__experiment
+        self.__get_names = []
         if l_exp:
-            for idx_exp, *idx_buf in l_exp:
+            for idx_exp, idx_buf in l_exp:
                 names = []
                 key_sensor = exp.source_names[idx_exp].lower()
                 if key_sensor in self.__sensors:
@@ -473,5 +474,3 @@ class PhyphoxLogger():
         for l_ in self.__get_names:
             for name in l_:
                 print("Buffer ", name)
-
-
