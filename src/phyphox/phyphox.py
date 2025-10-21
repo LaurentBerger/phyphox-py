@@ -338,26 +338,26 @@ class PhyphoxLogger():
         if l_exp:
             for idx_exp, idx_buf in l_exp:
                 names = []
-                key_sensor = exp.source_names[idx_exp].lower()
-                if key_sensor in self.__sensors:
-                    freq = self.__sensors[key_sensor]['MinDelay']
-                    freq = 1 / float(freq) * 1e6
-                    if self.__fs_samp_estimated < 0:
-                        self.__fs_samp_estimated = freq
-                    elif freq < self.__fs_samp_estimated:
-                        self.__fs_samp_estimated = freq
-                if 0 <= idx_exp < len(exp.buffer_names):
-                    for idx in idx_buf:
-                        if idx < 0 or idx >= len(exp.buffer_names[idx_exp]):
-                            raise IndexError("there is only ",
-                                             len(exp.buffer_names[idx_exp]),
-                                             ", buffer in this experiment")
-                        names.append(exp.buffer_names[idx_exp][idx])
-                    self.__get_names.append(names)
+                if idx_exp < 0 or idx_exp >= len(exp.source_names):
+                    warnings.warn("There is no "+ str(idx_exp) +"experience in configuration. Check your selected buffer.")
                 else:
-                    raise IndexError("there is only ",
-                                     len(exp.buffer_names),
-                                     ", experiment")
+                    key_sensor = exp.source_names[idx_exp].lower()
+                    if key_sensor in self.__sensors:
+                        freq = self.__sensors[key_sensor]['MinDelay']
+                        freq = 1 / float(freq) * 1e6
+                        if self.__fs_samp_estimated < 0:
+                            self.__fs_samp_estimated = freq
+                        elif freq < self.__fs_samp_estimated:
+                            self.__fs_samp_estimated = freq
+                    if 0 <= idx_exp < len(exp.buffer_names):
+                        for idx in idx_buf:
+                            if idx < 0 or idx >= len(exp.buffer_names[idx_exp]):
+                                warnings.warn("there is only " + str(len(exp.buffer_names[idx_exp])) + ", buffer in this experiment")
+                            else:
+                                names.append(exp.buffer_names[idx_exp][idx])
+                        self.__get_names.append(names)
+                    else:
+                        warnings.warn("There is no "+ str(idx_exp) +" buffer in  " + str(idx) +" experience in configuration. Check your selected buffer.")
         else:
             self.__get_names = copy.deepcopy(exp.buffer_names)
         return True
@@ -368,6 +368,9 @@ class PhyphoxLogger():
         In first call full data are retrieve otherwise last time
         buffer value is used to get only new data
         """
+        if not self.__get_names:
+            warnings.warn("No buffer selected. Call buffer_needed first")
+            return ""
         base = ""
         if self.__first_get or val_time is None:
             self.__nb_measure = 0
@@ -402,6 +405,10 @@ class PhyphoxLogger():
             lnk = self.build_link(self.__next_time)
         else:
             lnk = self.build_link(val_time=None)
+        if not lnk:
+            warnings.warn("No buffer selected. Cannot get data. Call buffer_needed first")
+            self.new_data = False
+            return
         logging.info(self.base_url + lnk)
         with urllib.request.urlopen(self.base_url + lnk) as reponse:
             reponse = reponse.read()
