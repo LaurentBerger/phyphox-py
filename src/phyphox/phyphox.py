@@ -10,8 +10,6 @@ import ipaddress
 import copy
 import warnings
 import logging
-import time
-import argparse
 
 
 PHYPHOX_API = {"start": "/control?cmd=start",
@@ -168,7 +166,6 @@ class PhyphoxLogger():
         self.__list_tabs = []
         self.channel = []
         self.legend = []
-        self.verbose = False
         self.new_data = False
         self.overflow = False
         if no_proxy:
@@ -310,22 +307,21 @@ class PhyphoxLogger():
     def export_file(self, filetype=0, filename="data.xls"):
         """
         retrieve all recorded data in a single file
-        format can be 
+        format can be
         0 for xls
         1 zip file included csv with comma separator and decimal point
         2 zip file included csv with tabulator separator and decimal point
         3 zip file included csv with semicolon separator and decimal point
         4 zip file included csv with tabulator separator and decimal comma
-        5 zip file included csv with semicolon separator and decimal comma        
+        5 zip file included csv with semicolon separator and decimal comma
         """
         url = self.base_url + "/export?format=" + str(filetype)
         with urllib.request.urlopen(url) as reponse:
             reponse = reponse.read()
         # self.__config = json.loads(reponse)
         logging.info("CONFIG:\n%s", str(reponse))
-        with open(filename,"wb") as fd:
+        with open(filename, "wb") as fd:
             fd.write(reponse)
-        
 
     def buffer_needed(self, l_exp=None):
         """
@@ -335,6 +331,8 @@ class PhyphoxLogger():
         id is source index in config data and
         b_idx is buffer index in source list.
         """
+        if not self.__req_answers["config"]:
+            self.config_cmd()
         exp = self.__experiment
         self.__get_names = []
         if l_exp:
