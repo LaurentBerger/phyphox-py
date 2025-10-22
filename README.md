@@ -88,7 +88,7 @@ print("data length {0} from Time {1} to {2}".format(len(last_tab1[0][1]), last_t
 print("Hope next time {0}.".format(last_tab1[0][0][-1]+te))
 
 ```
-Now we can wait 1 seconds and retrieve all new data:
+Now we can wait 0.5 seconds and retrieve all new data:
 ```
 time.sleep(0.5)
 my_phone.read_buffers()
@@ -100,10 +100,12 @@ To stop sampling:
 my_phone.stop()
 
 Results are 
+```
 data length 380 from Time 0.095016596 to 1.9895734
 Hope next time 1.9945722306174143.
 data length 127 from Time 1.9945783 to 2.6244306
 Hope next time 2.6294294306174146.
+```
 ## Credits
 
 This library has been developed by Laurent Berger with the help of phyphox forum and github issue.
