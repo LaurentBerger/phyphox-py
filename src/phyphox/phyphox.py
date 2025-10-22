@@ -10,6 +10,17 @@ import ipaddress
 import copy
 import warnings
 import logging
+import enum
+
+class BufferMode(enum.Enum):
+    """
+    FULL to get all data
+    UPDATE to get all data since last call
+    LAST to last measure (one per buffer)
+    """
+    FULL = 0
+    UPDATE = 1
+    LAST = 2
 
 
 PHYPHOX_API = {"start": "/control?cmd=start",
@@ -159,7 +170,6 @@ class PhyphoxLogger():
         self.__sensors = {}
         self.__experiment = None
         self.__get_names = []
-        self.__fs_samp_estimated = -1
         self.__first_get = True
         self.__next_time = []
         self.__nb_measure = 0
@@ -220,7 +230,7 @@ class PhyphoxLogger():
         warnings.warn("Unknown command or not implemented")
         return {}
 
-    def get_meta(self, key):
+    def get_meta_key(self, key):
         """
         get key in JSON phyphox meta data
         parameter key: str
@@ -245,13 +255,13 @@ class PhyphoxLogger():
             else:
                 print(niveau * '\t' + cle, ":", json_reponse[cle])
 
-    def start_cmd(self):
+    def start(self):
         """
         Send start command to phyphox phone application
         """
         return self.send_url("start")
 
-    def meta_cmd(self, force_update=False):
+    def get_meta(self, force_update=False):
         """
         Get meta information from phyphox phone application
         """
@@ -266,7 +276,7 @@ class PhyphoxLogger():
             else:
                 warnings.warn("Unknown meta key %s", str(key))
 
-    def config_cmd(self, force_update=False):
+    def get_config(self, force_update=False):
         """
         Get config data for selected experiment
         """
@@ -285,20 +295,20 @@ class PhyphoxLogger():
                 self.__sensors[sensor_name] = \
                     PhyphoxSensor(self.__req_answers["meta"]["sensors"][sensor_name])
 
-    def clear_cmd(self):
+    def clear_data(self):
         """
         Stop sampling and reset buffer of phyphox phone application
         """
         self.__nb_measure = 0
         return self.send_url("clear")
 
-    def stop_cmd(self):
+    def stop(self):
         """
         Stop sampling of phyphox phone application
         """
         return self.send_url("stop")
 
-    def time_cmd(self):
+    def get_time(self):
         """
         Get phone time reference
         """
@@ -332,37 +342,30 @@ class PhyphoxLogger():
         b_idx is buffer index in source list.
         """
         if not self.__req_answers["config"]:
-            self.config_cmd()
+            self.get_config()
         exp = self.__experiment
         self.__get_names = []
-        if l_exp:
-            for idx_exp, idx_buf in l_exp:
-                names = []
-                if idx_exp < 0 or idx_exp >= len(exp.source_names):
-                    warnings.warn("There is no "+ str(idx_exp) +"experience in configuration. Check your selected buffer.")
-                else:
-                    key_sensor = exp.source_names[idx_exp].lower()
-                    if key_sensor in self.__sensors:
-                        freq = self.__sensors[key_sensor]['MinDelay']
-                        freq = 1 / float(freq) * 1e6
-                        if self.__fs_samp_estimated < 0:
-                            self.__fs_samp_estimated = freq
-                        elif freq < self.__fs_samp_estimated:
-                            self.__fs_samp_estimated = freq
-                    if 0 <= idx_exp < len(exp.buffer_names):
-                        for idx in idx_buf:
-                            if idx < 0 or idx >= len(exp.buffer_names[idx_exp]):
-                                warnings.warn("there is only " + str(len(exp.buffer_names[idx_exp])) + ", buffer in this experiment")
-                            else:
-                                names.append(exp.buffer_names[idx_exp][idx])
-                        self.__get_names.append(names)
-                    else:
-                        warnings.warn("There is no "+ str(idx_exp) +" buffer in  " + str(idx) +" experience in configuration. Check your selected buffer.")
-        else:
+        if not l_exp:
             self.__get_names = copy.deepcopy(exp.buffer_names)
+            return True
+        for idx_exp, idx_buf in l_exp:
+            names = []
+            if idx_exp < 0 or idx_exp >= len(exp.source_names):
+                warnings.warn("There is no "+ str(idx_exp) +\
+                              " experience in configuration." +\
+                              " Check your selected buffer.")
+            else:
+                for idx in idx_buf:
+                    if idx < 0 or idx >= len(exp.buffer_names[idx_exp]):
+                        warnings.warn("there is only " +\
+                                      str(len(exp.buffer_names[idx_exp])) +\
+                                      ", buffer in this experiment")
+                    else:
+                        names.append(exp.buffer_names[idx_exp][idx])
+                self.__get_names.append(names)
         return True
 
-    def build_link(self, val_time=None):
+    def build_link(self, val_time=None, only_last=False):
         """
         Create link to retrieve buffer selected
         In first call full data are retrieve otherwise last time
@@ -372,11 +375,14 @@ class PhyphoxLogger():
             warnings.warn("No buffer selected. Call buffer_needed first")
             return ""
         base = ""
-        if self.__first_get or val_time is None:
+        if self.__first_get or val_time is None or only_last:
             self.__nb_measure = 0
             for l_name in self.__get_names:
                 for name in l_name:
-                    base = base + name + "=full&"
+                    if only_last:
+                        base = base + name + "&"
+                    else:
+                        base = base + name + "=full&"
             base = "/get?" + base[:-1]
         else:
             if len(val_time) != len(self.__get_names):
@@ -394,19 +400,27 @@ class PhyphoxLogger():
             base = "/get?" + base[:-1]
         return base
 
-    def get_measure(self, stack_data=True, full_data=False):
+    def read_buffers(self, stack_data=True, mode_data=BufferMode.UPDATE):
         """
-        get data for selected buffer and put data
+        read data for selected buffer and put data
         in a list of numpy array (private attribute __numpy_tabs)
+        if full data is True all data since experiment begining is retrieve otherwise 
+        only data since last call.
         if stack_data is True data are pushed in a list otherwise
         only last data are keep in memory
         """
-        if not full_data:
-            lnk = self.build_link(self.__next_time)
-        else:
-            lnk = self.build_link(val_time=None)
+
+        match mode_data:
+            case BufferMode.FULL:
+                lnk = self.build_link(val_time=None)
+            case BufferMode.UPDATE:
+                lnk = self.build_link(self.__next_time)
+            case BufferMode.LAST:
+                lnk = self.build_link(only_last=True)
+            case _:
+                lnk = ""
         if not lnk:
-            warnings.warn("No buffer selected. Cannot get data. Call buffer_needed first")
+            warnings.warn("No buffer selected or invali mode_data. Cannot get data")
             self.new_data = False
             return
         logging.info(self.base_url + lnk)
@@ -445,18 +459,28 @@ class PhyphoxLogger():
         """
         return self.__nb_measure
 
-    def get_last_measure(self):
+    def get_last_buffer_read(self):
         """
-        return last buffer array
+        return last buffer list
         """
-        return self.__list_tabs[-1]
+        if self.new_data:
+            return self.__list_tabs[-1]
+        return []
+
+    def get_all_buffer_read(self):
+        """
+        return a deep copy of all buffer read
+        """
+        if self.new_data:
+            return copy.deepcopy(self.__list_tabs)
+        return []
 
     def print_buffer_name(self):
         """
         Print available buffer in config data
         """
         if not self.__req_answers["config"]:
-            self.config_cmd()
+            self.get_config()
         if not self.__req_answers["config"]:
             warnings.warn("Cannot get config data")
             return
