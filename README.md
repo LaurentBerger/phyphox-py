@@ -1,15 +1,15 @@
 # phyphox-py
-Use phyphox-py package  to get experimental data from your phyphox phone app. 
+Use phyphox-py package  to get experimental data from your phyphox mobile app. 
 
-The purpose of this library is to get sensor data  from the phyphox app (see www.phyphox.org) in python.
+This library allows you to access sensor data from the Phyphox app (see www.phyphox.org) directly in Python.
 
-## Concept of phyphox
+## What is Phyphox?
 
-Phyphox is an open source app that has been developed at the RWTH Aachen University. It is available on Android and iOS and primarily aims at making the phone's sensors available for physics experiments. 
+Phyphox is an open-source mobile application developed by RWTH Aachen University. Available on both Android and iOS, it provides access to the phone’s internal sensors for use in physics experiments.
 
 ## Installation
 
-To install phyphox-py run this command in your terminal :
+To install phyphox-py, run the following command in your terminal:
 
 ```python3 -m pip install phyphox-py```
 
@@ -19,15 +19,17 @@ or in Windows
 
 ## Usage
 
-To use phyphox-py from command line:
+### Basic Example
 ```
 import phyphox
 import time
 
 my_phone = phyphox.PhyphoxLogger("192.168.0.12", 8080)
-my_phone = phyphox.PhyphoxLogger("192.168.0.12", 8080)
 my_phone.get_meta()
 print(my_phone)
+```
+Sample output (truncated):
+```
 accelerometer    Name : ICM20602 Accelerometer
 Vendor : InvenSense
 Range : 78.45346
@@ -46,10 +48,13 @@ camera2api : [{"id":"0","facing":"LENS_FACING_BACK","hardwareLevel":"HARDWARE_LE
 camera2apiFull : [{"id":"0","facing":"LENS_FACING_BACK","hardwareLevel":"HARDWARE_LEVEL_3","capabilities":["CAPABILIT ...
 
 ```
-We can get experiment configuration too:
+### Getting Experiment Configuration
 ```
 my_phone.get_config()
 print(my_phone)
+```
+Sample output (truncated):
+```
 crc32 : 44c5dc97
 title : Gyroscope (rotation rate)
 localTitle : Gyroscope (vitesse angulaire)
@@ -64,19 +69,24 @@ accelerometer    Name : ICM20602 Accelerometer
 camera2api : [{"id":"0","facing":"LENS_FACING_BACK","hardwareLevel":"HARDWARE_LEVEL_3","capabilities":["CAPABILIT ...
 camera2apiFull : [{"id":"0","facing":"LENS_FACING_BACK","hardwareLevel":"HARDWARE_LEVEL_3","capabilities":["CAPABILIT ...
 ```
-Now we can select buffers in each experiment. Buffer order is in export key. To select gyr_time, gyrZ and gyrX :
+### Selecting Buffers for an Experiment
+Buffer order is based on the export key.
+To select gyr_time, gyrZ, and gyrX:
 ```
 my_phone.buffer_needed([(0, (0, 3, 1))])
-True
 ```
-We can check if everything is fine :
+To check buffer selection:
 ```
 my_phone.print_select_buffer()
+```
+Expected output:
+```
 Buffer  gyr_time
 Buffer  gyrZ
 Buffer  gyrX
 ```
-Now we clear all buffers data, start sampling, wait 2 seconds and read all data available since experiment started, retreive all last buffers read in a list:
+### Reading mobile sensor Data
+Clear all buffer data, start data acquisition, wait for 2 seconds, then retrieve any data in a list:
 ```
 my_phone.clear_data()
 my_phone.start()
@@ -86,9 +96,8 @@ last_tab = my_phone.get_last_buffer_read()
 te=(-last_tab1[0][0][0]+ last_tab1[0][0][-1])/(len(last_tab1[0][1])-1)
 print("data length {0} from Time {1} to {2}".format(len(last_tab1[0][1]), last_tab1[0][0][0], last_tab1[0][0][-1]))
 print("Hope next time {0}.".format(last_tab1[0][0][-1]+te))
-
 ```
-Now we can wait 0.5 seconds and retrieve all new data:
+Now wait 0.5 seconds and retrieve any new data:
 ```
 time.sleep(0.5)
 my_phone.read_buffers()
@@ -96,10 +105,12 @@ last_tab1 = my_phone.get_last_buffer_read()
 print("data length {0} from Time {1} to {2}".format(len(last_tab1[0][1]), last_tab1[0][0][0], last_tab1[0][0][-1]))
 print("Hope next time {0}.".format(last_tab1[0][0][-1]+te))
 ```
-To stop sampling:
+### Stop sampling
+```
 my_phone.stop()
+```
 
-Results are 
+### Sample output
 ```
 data length 380 from Time 0.095016596 to 1.9895734
 Hope next time 1.9945722306174143.
@@ -108,7 +119,7 @@ Hope next time 2.6294294306174146.
 ```
 ## Credits
 
-This library has been developed by Laurent Berger with the help of phyphox forum and github issue.
+This library was developed by Laurent Berger with the help from phyphox forum and github issues.
 
 ## Licence
 
@@ -116,5 +127,5 @@ This library is released under the GNU Lesser General Public Licence v3.0.
 
 ## Contact
 
-Contact me any time create an issue.
+If you have questions or issues, feel free to open an issue on the GitHub repository.
 
