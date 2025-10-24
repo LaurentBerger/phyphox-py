@@ -194,6 +194,10 @@ class PhyphoxLogger():
             'deviceRelease': None,
             'depthFrontSensor': None,
             'depthBackSensor': None,
+            'depthFrontRate': None,
+            'depthBackRate': None,
+            'depthFrontResolution': None,
+            'depthBackResolution': None,
             'camera2api': None,
             'camera2apiFull': None}
 
@@ -274,7 +278,7 @@ class PhyphoxLogger():
             elif key == 'sensors':
                 self.init_sensors()
             else:
-                warnings.warn("Unknown meta key %s", str(key))
+                warnings.warn("Unknown meta key "+ str(key))
 
     def get_config(self, force_update=False):
         """
