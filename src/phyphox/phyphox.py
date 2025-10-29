@@ -369,6 +369,16 @@ class PhyphoxLogger():
                 self.__get_names.append(names)
         return True
 
+    def get_buffer_name(self, idx):
+        """
+        get selected buffer name at index idx
+        return value: str
+        """
+        if 0 <= idx[0] < len(self.__get_names):
+            if 0 <= idx[1] < len(self.__get_names[idx[0]]):
+                return self.__get_names[idx[0]][idx[1]]
+        return ''
+
     def build_link(self, val_time=None, only_last=False):
         """
         Create link to retrieve buffer selected
@@ -426,7 +436,7 @@ class PhyphoxLogger():
         if not lnk:
             warnings.warn("No buffer selected or invali mode_data. Cannot get data")
             self.new_data = False
-            return
+            return self.new_data
         logging.info(self.base_url + lnk)
         with urllib.request.urlopen(self.base_url + lnk) as reponse:
             reponse = reponse.read()
@@ -434,7 +444,7 @@ class PhyphoxLogger():
             data = json.loads(reponse)
         if len(data['buffer'][self.__get_names[0][0]]['buffer']) == 0:
             self.new_data = False
-            return
+            return self.new_data
         self.__next_time = []
         self.__first_get = False
         self.__nb_measure = self.__nb_measure +\
@@ -456,6 +466,7 @@ class PhyphoxLogger():
                 self.overflow = False
             self.__list_tabs = [list_tabs]
         self.new_data = True
+        return self.new_data
 
     def get_nb_measure(self):
         """
