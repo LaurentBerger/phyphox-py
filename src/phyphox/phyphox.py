@@ -35,6 +35,7 @@ PHYPHOX_API = {"start": "/control?cmd=start",
 class PhyphoxSensor():
     """
     PhyphoxSensor class
+    :param dict sensor meta data in phyphox format 
     """
     def __init__(self, metadata=None):
         self.__meta = {
@@ -57,8 +58,8 @@ class PhyphoxSensor():
     def get(self, key):
         """
         get key in JSON sensor description
-        parameter key: str
-        return key value  if key exist otherwise None
+        :param str key
+        :return key value  if key exist otherwise None
         """
         if key in self.__meta:
             return self.__meta[key]
@@ -148,15 +149,25 @@ class Experiment():
 class PhyphoxLogger():
     """
     PhyphoxLogger class
-    meta :
-    https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fmeta
-    :meta private __sensors sensor used in experiment
-    :meta private __config raw data for experiment configuration
-    :meta private __meta raw data for meta phyphox answer
-    :ivar base_url url to access phone phyphox application
+    
+    :param str ip: address 
+    :param int port: number
+    :param str protocol: default hhtp
+    :param bool no_proxy: default False. True try disable proxy using environment variable
     """
 
     def __init__(self, adresse, port=8080, protocol='http', no_proxy=False):
+        """The constructor
+        meta :
+        https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fmeta
+        :meta private __config raw data for experiment configuration
+        :meta private __meta raw data for meta phyphox answer
+        :ivar base_url: url to access phone phyphox application
+        :param str ip address 
+        :param int port number
+        :param str protocol default hhtp
+        :param bool dafault False. True try disable proxy using environment variable
+        """
         if ipaddress.ip_address(adresse):
             if isinstance(port, int):
                 self.__ip_adress = adresse, str(port)
@@ -167,6 +178,7 @@ class PhyphoxLogger():
         self.base_url = protocol + "://" + \
             self.__ip_adress[0] + ":" + self.__ip_adress[1]
         self.__req_answers = {'config': {}, 'meta': {}}
+        #: private __sensors: sensor used in experiment
         self.__sensors = {}
         self.__experiment = None
         self.__get_names = []
@@ -217,11 +229,12 @@ class PhyphoxLogger():
             print(sensor[0], "\t", sensor[1])
         return result
 
-    def send_url(self, api_key):
+    def send_url(self, cmd_key):
         """
         open standard phyphox url
-        parameter api_key: str
-        return json answers or an empty dict if there is no answer
+        
+        :param str cmd_key: command to send
+        :return dict: json answers or an empty dict if there is no answer
         """
         if api_key in PHYPHOX_API:
             url = self.base_url + PHYPHOX_API[api_key]
@@ -237,8 +250,9 @@ class PhyphoxLogger():
     def get_meta_key(self, key):
         """
         get key in JSON phyphox meta data
-        parameter key: str
-        return key value  if key exist otherwise None
+        
+        :param str key: key to retrieve
+        :return : ley value if  exist otherwise None
         """
         if key in self.__req_answers["meta"]:
             return self.__req_answers["meta"][key]
@@ -262,6 +276,8 @@ class PhyphoxLogger():
     def start(self):
         """
         Send start command to phyphox phone application
+        
+        :return: json answer must be true
         """
         return self.send_url("start")
 
