@@ -13,14 +13,12 @@ import logging
 import enum
 
 class BufferMode(enum.Enum):
-    """
-    FULL to get all data
-    UPDATE to get all data since last call
-    LAST to last measure (one per buffer)
-    """
+    #: FULL to get all data
     FULL = 0
-    UPDATE = 1
-    LAST = 2
+    #: LAST to last measure (one per buffer)
+    LAST = 1
+    #: UPDATE to get all data since last call
+    UPDATE = 2
 
 
 PHYPHOX_API = {"start": "/control?cmd=start",
@@ -35,9 +33,14 @@ PHYPHOX_API = {"start": "/control?cmd=start",
 class PhyphoxSensor():
     """
     PhyphoxSensor class
-    :param dict sensor meta data in phyphox format 
+    
+    :param dict metadata: sensor meta data
+    
+    `read phyphox doc`_ .
+    
+    .. _read phyphox doc: https://phyphox.org/wiki/index.php/Network_Connections#Metadata
     """
-    def __init__(self, metadata=None):
+    def __init__(self, metadata: dict=None):
         self.__meta = {
             'Name': None,
             'Vendor': None,
@@ -55,7 +58,7 @@ class PhyphoxSensor():
         else:
             raise TypeError("metadata is not a dict in PhyphoxSensor")
 
-    def get(self, key):
+    def get(self, key: (int, str)):
         """
         get key in JSON sensor description
         :param str key
@@ -85,7 +88,7 @@ class Experiment():
     https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fconfig
     https://phyphox.org/wiki/index.php/Phyphox_file_format
     """
-    def __init__(self, metadata=None):
+    def __init__(self, metadata: dict=None):
         self.__meta = {
             'crc32': None,
             'title': None,
@@ -120,7 +123,7 @@ class Experiment():
     def __repr__(self):
         return 'Experiment('+str(self.__meta)+')'
 
-    def get(self, key):
+    def get(self, key: (int, str)):
         """
         get key in JSON phyphox config data
         parameter key: str
@@ -154,14 +157,14 @@ class PhyphoxLogger():
     :param int port: number
     :param str protocol: default hhtp
     :param bool no_proxy: default False. True try disable proxy using environment variable
+    :meta private config: raw data for experiment configuration
+    :meta private meta: raw data for meta phyphox answer
     """
 
     def __init__(self, adresse, port=8080, protocol='http', no_proxy=False):
         """The constructor
         meta :
         https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fmeta
-        :meta private __config raw data for experiment configuration
-        :meta private __meta raw data for meta phyphox answer
         :ivar base_url: url to access phone phyphox application
         :param str ip address 
         :param int port number
@@ -175,10 +178,12 @@ class PhyphoxLogger():
                 raise ValueError("port must be an integer")
         else:
             raise ValueError("IP Address not correct")
+        #: url to access phone phyphox application
         self.base_url = protocol + "://" + \
             self.__ip_adress[0] + ":" + self.__ip_adress[1]
+        
         self.__req_answers = {'config': {}, 'meta': {}}
-        #: private __sensors: sensor used in experiment
+        #: sensors: sensor used in experiment
         self.__sensors = {}
         self.__experiment = None
         self.__get_names = []
@@ -186,13 +191,18 @@ class PhyphoxLogger():
         self.__next_time = []
         self.__nb_measure = 0
         self.__list_tabs = []
+        #: channel  name
         self.channel = []
+        #: legend for each channel
         self.legend = []
+        #: True when new data is available
         self.new_data = False
+        #: True when new data overflow non read data
         self.overflow = False
         if no_proxy:
             os.environ["no_proxy"] = self.__ip_adress[0]
         logging.info("Phone adress : %s", self.base_url)
+        #: know key see
         self.__metakeys = {
             'version': None,
             'build': None,
@@ -252,7 +262,7 @@ class PhyphoxLogger():
         get key in JSON phyphox meta data
         
         :param str key: key to retrieve
-        :return : ley value if  exist otherwise None
+        :return: key value if  exist otherwise None
         """
         if key in self.__req_answers["meta"]:
             return self.__req_answers["meta"][key]
@@ -438,6 +448,11 @@ class PhyphoxLogger():
         only data since last call.
         if stack_data is True data are pushed in a list otherwise
         only last data are keep in memory
+        
+        :param bool stack_data: True data are pushed in a list otherwise only last data are keep in memory
+        
+        :param BufferMode mode_data: see 
+        :return: True if new data are available
         """
 
         match mode_data:
