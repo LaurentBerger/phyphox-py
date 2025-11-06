@@ -60,9 +60,10 @@ class PhyphoxSensor():
 
     def get(self, key: (int, str)):
         """
-        get key in JSON sensor description
-        :param str key
-        :return key value  if key exist otherwise None
+        extract key in JSON sensor description
+        
+        :param str, int key: key to extract
+        :return key: value  if key exist otherwise None
         """
         if key in self.__meta:
             return self.__meta[key]
@@ -84,9 +85,13 @@ class PhyphoxSensor():
 
 class Experiment():
     """
-    Phyphox Experience class
-    https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fconfig
-    https://phyphox.org/wiki/index.php/Phyphox_file_format
+    Experiment class
+    
+    :param dict metadata: experiment meta data
+    
+    `see phyphox experiment doc`_ .
+    
+    .. _see phyphox experiment doc: https://phyphox.org/wiki/index.php?title=Remote-interface_communication#.2Fconfig
     """
     def __init__(self, metadata: dict=None):
         self.__meta = {
