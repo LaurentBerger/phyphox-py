@@ -26,7 +26,7 @@ if __name__ == '__main__':
         logging.info("Verbose output.")
     else:
         logging.basicConfig(format="%(levelname)s: %(message)s")
-    my_phone = phyphox.PhyphoxLogger("192.168.0.1", 8080, no_proxy=True)
+    my_phone = phyphox.Logger("192.168.0.1", 8080, no_proxy=True)
     my_phone.get_meta()
     my_phone.get_config()
     print(my_phone)

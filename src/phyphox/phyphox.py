@@ -13,6 +13,9 @@ import logging
 import enum
 
 class BufferMode(enum.Enum):
+    """
+    Constant to build url to retrieve data
+     """
     #: FULL to get all data
     FULL = 0
     #: LAST to last measure (one per buffer)
@@ -30,9 +33,9 @@ PHYPHOX_API = {"start": "/control?cmd=start",
                }
 
 
-class PhyphoxSensor():
+class Sensor():
     """
-    PhyphoxSensor class
+    Phyphox Sensor class
     
     :param dict metadata: sensor meta data
     
@@ -56,7 +59,7 @@ class PhyphoxSensor():
                 if key in self.__meta:
                     self.__meta[key] = metadata[key]
         else:
-            raise TypeError("metadata is not a dict in PhyphoxSensor")
+            raise TypeError("metadata is not a dict in Phyphox Sensor")
 
     def get(self, key: (int, str)):
         """
@@ -80,7 +83,7 @@ class PhyphoxSensor():
         return result
 
     def __repr__(self):
-        return 'PhyphoxSensor('+str(self.__meta)+')'
+        return 'Sensor('+str(self.__meta)+')'
 
 
 class Experiment():
@@ -154,9 +157,9 @@ class Experiment():
                 self.buffer_names.append(canaux_exp)
 
 
-class PhyphoxLogger():
+class Logger():
     """
-    PhyphoxLogger class
+    Phyphox Logger class
     
     :param str ip: address 
     :param int port: number
@@ -186,7 +189,6 @@ class PhyphoxLogger():
         #: url to access phone phyphox application
         self.base_url = protocol + "://" + \
             self.__ip_adress[0] + ":" + self.__ip_adress[1]
-        
         self.__req_answers = {'config': {}, 'meta': {}}
         #: sensors: sensor used in experiment
         self.__sensors = {}
@@ -196,6 +198,7 @@ class PhyphoxLogger():
         self.__next_time = []
         self.__nb_measure = 0
         self.__list_tabs = []
+        self.__cmd_response = None
         #: channel  name
         self.channel = []
         #: legend for each channel
@@ -251,12 +254,12 @@ class PhyphoxLogger():
         :param str cmd_key: command to send
         :return dict: json answers or an empty dict if there is no answer
         """
-        if api_key in PHYPHOX_API:
-            url = self.base_url + PHYPHOX_API[api_key]
+        if cmd_key in PHYPHOX_API:
+            url = self.base_url + PHYPHOX_API[cmd_key]
             try:
                 with urllib.request.urlopen(url) as reponse:
-                    reponse = reponse.read()
-                return json.loads(reponse)
+                    self.__cmd_response = reponse.read()
+                return json.loads(self.__cmd_response)
             except urllib.error.HTTPError:
                 pass
         warnings.warn("Unknown command or not implemented")
@@ -328,7 +331,7 @@ class PhyphoxLogger():
         for sensor_name in self.__req_answers["meta"]["sensors"]:
             if self.__req_answers["meta"]["sensors"][sensor_name]:
                 self.__sensors[sensor_name] = \
-                    PhyphoxSensor(self.__req_answers["meta"]["sensors"][sensor_name])
+                    Sensor(self.__req_answers["meta"]["sensors"][sensor_name])
 
     def clear_data(self):
         """
