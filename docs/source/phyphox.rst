@@ -3,9 +3,9 @@ phyphox
 
 .. autoclass:: phyphox.BufferMode
     :members:
-.. autoclass:: phyphox.PhyphoxLogger
+.. autoclass:: phyphox.Logger
     :members:
-.. autoclass:: phyphox.PhyphoxSensor
+.. autoclass:: phyphox.Sensor
     :members:
 .. autoclass:: phyphox.Experiment
     :members:

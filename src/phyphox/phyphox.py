@@ -14,13 +14,13 @@ import enum
 
 class BufferMode(enum.Enum):
     """
-    Constant to build url to retrieve data
-     """
-    #: FULL to get all data
+    Constant used to build URLs to retrieve data.
+    """
+    #: FULL Retrieve all data.
     FULL = 0
-    #: LAST to last measure (one per buffer)
+    #: LAST Retrieve only the last measurement (one per buffer).
     LAST = 1
-    #: UPDATE to get all data since last call
+    #: UPDATE Retrieve all data since the last call.
     UPDATE = 2
 
 
@@ -37,11 +37,11 @@ class Sensor():
     """
     Phyphox Sensor class
     
-    :param dict metadata: sensor meta data
+    :param dict metadata: sensor metadata
     
-    `read phyphox doc`_ .
+    `Refer to the Phyphox documentation for details.`_ .
     
-    .. _read phyphox doc: https://phyphox.org/wiki/index.php/Network_Connections#Metadata
+    .. _Refer to the Phyphox documentation for details.: https://phyphox.org/wiki/index.php/Network_Connections#Metadata
     """
     def __init__(self, metadata: dict=None):
         self.__meta = {
@@ -66,7 +66,7 @@ class Sensor():
         extract key in JSON sensor description
         
         :param str, int key: key to extract
-        :return key: value  if key exist otherwise None
+        :return key: value if key exist otherwise None
         """
         if key in self.__meta:
             return self.__meta[key]
@@ -90,11 +90,11 @@ class Experiment():
     """
     Experiment class
     
-    :param dict metadata: experiment meta data
+    :param dict metadata: experiment metadata
     
-    `see phyphox experiment doc`_ .
+    `Refer to the Phyphox experiment documentation.`_ .
     
-    .. _see phyphox experiment doc: https://phyphox.org/wiki/index.php?title=Remote-interface_communication#.2Fconfig
+    .. _Refer to the Phyphox experiment documentation.: https://phyphox.org/wiki/index.php?title=Remote-interface_communication#.2Fconfig
     """
     def __init__(self, metadata: dict=None):
         self.__meta = {
@@ -161,10 +161,10 @@ class Logger():
     """
     Phyphox Logger class
     
-    :param str ip: address 
-    :param int port: number
-    :param str protocol: default hhtp
-    :param bool no_proxy: default False. True try disable proxy using environment variable
+    :param str ip: Device IP address. 
+    :param int port: Port number (default: 8080).
+    :param str protocol: Communication protocol (default: 'http').
+    :param bool no_proxy: If True, disables proxy usage by setting the environment variable (default: False).
     :meta private config: raw data for experiment configuration
     :meta private meta: raw data for meta phyphox answer
     """
@@ -173,10 +173,10 @@ class Logger():
         """The constructor
         meta :
         https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fmeta
-        :ivar base_url: url to access phone phyphox application
-        :param str ip address 
-        :param int port number
-        :param str protocol default hhtp
+        :ivar base_url: URL to access the Phyphox application on the phone.
+        :param str 
+        :param int Port number (default: 8080).
+        :param str C
         :param bool dafault False. True try disable proxy using environment variable
         """
         if ipaddress.ip_address(adresse):
@@ -249,10 +249,10 @@ class Logger():
 
     def send_url(self, cmd_key):
         """
-        open standard phyphox url
+        open standard phyphox URL.
         
-        :param str cmd_key: command to send
-        :return dict: json answers or an empty dict if there is no answer
+        :param str cmd_key: Command to send
+        :return dict: A dictionary with the JSON response, or an empty dict if no response.
         """
         if cmd_key in PHYPHOX_API:
             url = self.base_url + PHYPHOX_API[cmd_key]
@@ -267,10 +267,10 @@ class Logger():
 
     def get_meta_key(self, key):
         """
-        get key in JSON phyphox meta data
+        Retrieves a key from the JSON metadata.
         
-        :param str key: key to retrieve
-        :return: key value if  exist otherwise None
+        :param str key: Key to retrieve.
+        :return: Key value if it exists, otherwise None.
         """
         if key in self.__req_answers["meta"]:
             return self.__req_answers["meta"][key]
@@ -293,15 +293,17 @@ class Logger():
 
     def start(self):
         """
-        Send start command to phyphox phone application
+        Sends the start command to the Phyphox app.
         
-        :return: json answer must be true
+        :return: JSON response (True on success).
         """
         return self.send_url("start")
 
     def get_meta(self, force_update=False):
         """
         Get meta information from phyphox phone application
+        
+        :param bool force_update: True retrieve data from mobile phone otherwise use old data.
         """
         if force_update or not self.__req_answers["meta"]:
             self.__req_answers["meta"] = self.send_url("meta")
@@ -316,7 +318,7 @@ class Logger():
 
     def get_config(self, force_update=False):
         """
-        Get config data for selected experiment
+        Retrieves configuration data for the selected experiment.
         """
         if force_update or not self.__req_answers["config"]:
             self.__req_answers["config"] = self.send_url("config")
@@ -325,7 +327,7 @@ class Logger():
 
     def init_sensors(self):
         """
-        build sensor objects using meta answer
+        Builds sensor objects using metadata.
         """
         self.__sensors = {}
         for sensor_name in self.__req_answers["meta"]["sensors"]:
@@ -335,7 +337,9 @@ class Logger():
 
     def clear_data(self):
         """
-        Stop sampling and reset buffer of phyphox phone application
+        Stop sampling and reset buffer in the Phyphox app.
+        
+        :return: JSON response (True on success).
         """
         self.__nb_measure = 0
         return self.send_url("clear")
@@ -343,6 +347,8 @@ class Logger():
     def stop(self):
         """
         Stop sampling of phyphox phone application
+        
+        :return: JSON response (True on success).
         """
         return self.send_url("stop")
 
@@ -354,8 +360,8 @@ class Logger():
 
     def export_file(self, filetype=0, filename="data.xls"):
         """
-        retrieve all recorded data in a single file
-        format can be
+        Retrieves all recorded data in a single file.
+        File types:
         0 for xls
         1 zip file included csv with comma separator and decimal point
         2 zip file included csv with tabulator separator and decimal point
@@ -373,11 +379,11 @@ class Logger():
 
     def buffer_needed(self, l_exp=None):
         """
-        Select buffer in phyphox config
-        if parameter is None all buffer are selected
-        otherwise l_exp is list of tuple id, (b_id1, ...) where
-        id is source index in config data and
-        b_idx is buffer index in source list.
+        Selects buffers in the Phyphox configuration.
+        if l_exp is None, all buffers are selected.
+        Otherwise, l_exp must be a list of tuples (id, (b_id1, …)),
+        where id is the source index in the configuration data,
+        and b_id is the buffer index in the source list.
         """
         if not self.__req_answers["config"]:
             self.get_config()
@@ -405,8 +411,9 @@ class Logger():
 
     def get_buffer_name(self, idx):
         """
-        get selected buffer name at index idx
-        return value: str
+        Returns the name of the buffer at index idx.
+        
+        :return value: str
         """
         if 0 <= idx[0] < len(self.__get_names):
             if 0 <= idx[1] < len(self.__get_names[idx[0]]):
@@ -415,9 +422,12 @@ class Logger():
 
     def build_link(self, val_time=None, only_last=False):
         """
-        Create link to retrieve buffer selected
-        In first call full data are retrieve otherwise last time
-        buffer value is used to get only new data
+        Creates a link to retrieve selected buffers.
+        On the first call, all data are retrieved;
+        on subsequent calls, only data after val_time are retrieved.
+        
+        :param (float, int) val_time: 
+        :param bool only_last: 
         """
         if not self.__get_names:
             warnings.warn("No buffer selected. Call buffer_needed first")
@@ -509,13 +519,13 @@ class Logger():
 
     def get_nb_measure(self):
         """
-        return number of measure for first buffer
+        Returns the number of measurements for the first buffer.
         """
         return self.__nb_measure
 
     def get_last_buffer_read(self):
         """
-        return last buffer list
+        Returns the last buffer list.
         """
         if self.new_data:
             return self.__list_tabs[-1]
@@ -523,7 +533,7 @@ class Logger():
 
     def get_all_buffer_read(self):
         """
-        return a deep copy of all buffer read
+        Returns a deep copy of all read buffers.
         """
         if self.new_data:
             return copy.deepcopy(self.__list_tabs)
@@ -531,7 +541,7 @@ class Logger():
 
     def print_buffer_name(self):
         """
-        Print available buffer in config data
+        Prints available buffers from configuration data.
         """
         if not self.__req_answers["config"]:
             self.get_config()
