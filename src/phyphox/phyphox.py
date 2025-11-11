@@ -12,6 +12,7 @@ import warnings
 import logging
 import enum
 
+
 class BufferMode(enum.Enum):
     """
     Constant used to build URLs to retrieve data.
@@ -36,14 +37,14 @@ PHYPHOX_API = {"start": "/control?cmd=start",
 class Sensor():
     """
     Phyphox Sensor class
-    
+
     :param dict metadata: sensor metadata
-    
+
     `Refer to the Phyphox documentation for details.`_ .
-    
+
     .. _Refer to the Phyphox documentation for details.: https://phyphox.org/wiki/index.php/Network_Connections#Metadata
     """
-    def __init__(self, metadata: dict=None):
+    def __init__(self, metadata: dict = None):
         self.__meta = {
             'Name': None,
             'Vendor': None,
@@ -64,7 +65,7 @@ class Sensor():
     def get(self, key: (int, str)):
         """
         extract key in JSON sensor description
-        
+
         :param str, int key: key to extract
         :return key: value if key exist otherwise None
         """
@@ -89,14 +90,14 @@ class Sensor():
 class Experiment():
     """
     Experiment class
-    
+
     :param dict metadata: experiment metadata
-    
+
     `Refer to the Phyphox experiment documentation.`_ .
-    
+
     .. _Refer to the Phyphox experiment documentation.: https://phyphox.org/wiki/index.php?title=Remote-interface_communication#.2Fconfig
     """
-    def __init__(self, metadata: dict=None):
+    def __init__(self, metadata: dict = None):
         self.__meta = {
             'crc32': None,
             'title': None,
@@ -160,8 +161,8 @@ class Experiment():
 class Logger():
     """
     Phyphox Logger class
-    
-    :param str ip: Device IP address. 
+
+    :param str ip: Device IP address.
     :param int port: Port number (default: 8080).
     :param str protocol: Communication protocol (default: 'http').
     :param bool no_proxy: If True, disables proxy usage by setting the environment variable (default: False).
@@ -171,13 +172,12 @@ class Logger():
 
     def __init__(self, adresse, port=8080, protocol='http', no_proxy=False):
         """The constructor
-        meta :
-        https://phyphox.org/wiki/index.php/Remote-interface_communication#.2Fmeta
+
         :ivar base_url: URL to access the Phyphox application on the phone.
-        :param str 
-        :param int Port number (default: 8080).
-        :param str C
-        :param bool dafault False. True try disable proxy using environment variable
+        :param str adresse: mobile phone address
+        :param int port: port number (default: 8080).
+        :param str protocol: default is http
+        :param bool no_proxy: default False. True try disable proxy using environment variable
         """
         if ipaddress.ip_address(adresse):
             if isinstance(port, int):
@@ -250,7 +250,7 @@ class Logger():
     def send_url(self, cmd_key):
         """
         open standard phyphox URL.
-        
+
         :param str cmd_key: Command to send
         :return dict: A dictionary with the JSON response, or an empty dict if no response.
         """
@@ -268,7 +268,7 @@ class Logger():
     def get_meta_key(self, key):
         """
         Retrieves a key from the JSON metadata.
-        
+
         :param str key: Key to retrieve.
         :return: Key value if it exists, otherwise None.
         """
@@ -294,7 +294,7 @@ class Logger():
     def start(self):
         """
         Sends the start command to the Phyphox app.
-        
+
         :return: JSON response (True on success).
         """
         return self.send_url("start")
@@ -302,7 +302,7 @@ class Logger():
     def get_meta(self, force_update=False):
         """
         Get meta information from phyphox phone application
-        
+
         :param bool force_update: True retrieve data from mobile phone otherwise use old data.
         """
         if force_update or not self.__req_answers["meta"]:
@@ -314,7 +314,7 @@ class Logger():
             elif key == 'sensors':
                 self.init_sensors()
             else:
-                warnings.warn("Unknown meta key "+ str(key))
+                warnings.warn("Unknown meta key " + str(key))
 
     def get_config(self, force_update=False):
         """
@@ -338,7 +338,7 @@ class Logger():
     def clear_data(self):
         """
         Stop sampling and reset buffer in the Phyphox app.
-        
+
         :return: JSON response (True on success).
         """
         self.__nb_measure = 0
@@ -347,7 +347,7 @@ class Logger():
     def stop(self):
         """
         Stop sampling of phyphox phone application
-        
+
         :return: JSON response (True on success).
         """
         return self.send_url("stop")
@@ -368,6 +368,9 @@ class Logger():
         3 zip file included csv with semicolon separator and decimal point
         4 zip file included csv with tabulator separator and decimal comma
         5 zip file included csv with semicolon separator and decimal comma
+
+        :param int filetype: default is 0 for xls
+        :param str filename: file name to save. default is "data.xls"
         """
         url = self.base_url + "/export?format=" + str(filetype)
         with urllib.request.urlopen(url) as reponse:
@@ -384,6 +387,9 @@ class Logger():
         Otherwise, l_exp must be a list of tuples (id, (b_id1, …)),
         where id is the source index in the configuration data,
         and b_id is the buffer index in the source list.
+
+        :param list l_exp: list of tuple. default value is None
+        :return bool: False is something wrong in list
         """
         if not self.__req_answers["config"]:
             self.get_config()
@@ -395,25 +401,25 @@ class Logger():
         for idx_exp, idx_buf in l_exp:
             names = []
             if idx_exp < 0 or idx_exp >= len(exp.source_names):
-                warnings.warn("There is no "+ str(idx_exp) +\
-                              " experience in configuration." +\
+                warnings.warn("There is no " + str(idx_exp) +
+                              " experience in configuration." +
                               " Check your selected buffer.")
-            else:
-                for idx in idx_buf:
-                    if idx < 0 or idx >= len(exp.buffer_names[idx_exp]):
-                        warnings.warn("there is only " +\
-                                      str(len(exp.buffer_names[idx_exp])) +\
-                                      ", buffer in this experiment")
-                    else:
-                        names.append(exp.buffer_names[idx_exp][idx])
-                self.__get_names.append(names)
+                return False
+            for idx in idx_buf:
+                if idx < 0 or idx >= len(exp.buffer_names[idx_exp]):
+                    warnings.warn("there is only " +
+                                  str(len(exp.buffer_names[idx_exp])) +
+                                  ", buffer in this experiment")
+                else:
+                    names.append(exp.buffer_names[idx_exp][idx])
+            self.__get_names.append(names)
         return True
 
-    def get_buffer_name(self, idx):
+    def get_buffer_name(self, idx: int) -> str:
         """
         Returns the name of the buffer at index idx.
-        
-        :return value: str
+
+        :return str: buffer name
         """
         if 0 <= idx[0] < len(self.__get_names):
             if 0 <= idx[1] < len(self.__get_names[idx[0]]):
@@ -425,9 +431,9 @@ class Logger():
         Creates a link to retrieve selected buffers.
         On the first call, all data are retrieved;
         on subsequent calls, only data after val_time are retrieved.
-        
-        :param (float, int) val_time: 
-        :param bool only_last: 
+
+        :param (float, int) val_time:
+        :param bool only_last:
         """
         if not self.__get_names:
             warnings.warn("No buffer selected. Call buffer_needed first")
@@ -462,14 +468,14 @@ class Logger():
         """
         read data for selected buffer and put data
         in a list of numpy array (private attribute __numpy_tabs)
-        if full data is True all data since experiment begining is retrieve otherwise 
-        only data since last call.
+        if full data is True all data since experiment begining is
+        retrieve otherwise only data since last call.
         if stack_data is True data are pushed in a list otherwise
         only last data are keep in memory
-        
+
         :param bool stack_data: True data are pushed in a list otherwise only last data are keep in memory
-        
-        :param BufferMode mode_data: see 
+
+        :param BufferMode mode_data: see
         :return: True if new data are available
         """
 
@@ -483,7 +489,8 @@ class Logger():
             case _:
                 lnk = ""
         if not lnk:
-            warnings.warn("No buffer selected or invali mode_data. Cannot get data")
+            warnings.warn("No buffer selected or invali mode_data." +
+                          "Cannot get data")
             self.new_data = False
             return self.new_data
         logging.info(self.base_url + lnk)

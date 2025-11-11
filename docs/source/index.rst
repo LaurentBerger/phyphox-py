@@ -1,5 +1,5 @@
 Welcome to phyphox-py documentation!
-=====================================s
+=====================================
 
 **phyphox-py**  is a Python library to  allows you to access sensor data from the Phyphox app (see www.phyphox.org) directly in Python.
 
@@ -16,5 +16,5 @@ Contents
 .. toctree::
 
    usage
-   api
-   ./phyphox.rst
+   class
+   class_index

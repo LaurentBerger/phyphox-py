@@ -1,4 +1,4 @@
-phyphox
+class
 ===========
 
 .. autoclass:: phyphox.BufferMode
