@@ -13,8 +13,18 @@ how to :ref:`install <installation>` the project.
 Contents
 --------
 
+
+
 .. toctree::
+   :maxdepth: 1
 
    usage
    class
-   class_index
+
+
+
+
+Indices
+--------
+
+:ref:`genindex`

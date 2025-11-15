@@ -1,6 +1,6 @@
 
-phyphox-py
-=================
+Python library phyphox-py
+=========================
 
 Use phyphox-py package  to get experimental data from your phyphox mobile app. 
 

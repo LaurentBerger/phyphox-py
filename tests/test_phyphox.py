@@ -1,14 +1,16 @@
 import unittest
+import unittest.mock
 import os
+import urllib.request
 import json
 import phyphox
 
 
 FOLDER_NAME = os.path.dirname(__file__)
 
-
 class TestPhyphoxMethods(unittest.TestCase):
-    def test_meta(self):
+    @unittest.mock.patch('urllib.request.urlopen')
+    def test_meta(self, mock_urlopen):
         file_name = "/meta_1.bin"
         meta_data = None
         try:
@@ -17,12 +19,20 @@ class TestPhyphoxMethods(unittest.TestCase):
         except FileNotFoundError:
             print("File not found {} in unit test".format(file_name, FOLDER_NAME))
             raise FileNotFoundError
-        x = phyphox.PhyphoxLogger("127.0.0.1",8080)
-        x._PhyphoxLogger__req_answers["meta"] =  json.loads(meta_data)
+        cm = unittest.mock.MagicMock()
+        cm.getcode.return_value = 200
+        cm.read.return_value = meta_data
+        cm.__enter__.return_value = cm
+        mock_urlopen.return_value = cm
+        x = phyphox.Logger("0.0.0.0",8080)
         x.get_meta()
         self.assertEqual(x.get_meta_key('deviceModel'), 'iPhone14,5')
+        self.assertEqual(x.get_meta_key('build'), '17272')
+        self.assertEqual(x.get_meta_key('deviceRelease'), '18.6.2')
+        self.assertEqual(x.get_meta_key('fileFormat'), '1.19')
 
-    def test_config(self):
+    @unittest.mock.patch('urllib.request.urlopen')
+    def test_config(self, mock_urlopen):
         file_name = "/config_1.bin"
         config_data = None
         try:
@@ -31,10 +41,17 @@ class TestPhyphoxMethods(unittest.TestCase):
         except FileNotFoundError:
             print("File not found {} in unit test".format(file_name, FOLDER_NAME))
             raise FileNotFoundError
-        x = phyphox.PhyphoxLogger("127.0.0.1",8080)
-        x._PhyphoxLogger__req_answers["config"] =  json.loads(config_data)
+        cm = unittest.mock.MagicMock()
+        cm.getcode.return_value = 200
+        cm.read.return_value = config_data
+        cm.__enter__.return_value = cm
+        mock_urlopen.return_value = cm
+        x = phyphox.Logger("0.0.0.0",8080)
         x.get_config()
-        self.assertEqual(x._PhyphoxLogger__experiment.get('title'), 'Magnetometer')
+        self.assertEqual(x._Logger__experiment.get('localTitle'), 'Magnétomètre')
+        self.assertEqual(x._Logger__experiment.get('buffers'), [{"size":0,"name":"mag_time"},{"name":"mag","size":0},{"size":0,"name":"magX"},{"size":0,"name":"magY"},{"size":0,"name":"magAccuracy"},{"size":0,"name":"magZ"}])
+        self.assertEqual(x._Logger__experiment.get('crc32'), 'e04c0bfa')
+        self.assertEqual(x._Logger__experiment.get('category'), 'Raw Sensors')
 
 if __name__ == '__main__':
     unittest.main()

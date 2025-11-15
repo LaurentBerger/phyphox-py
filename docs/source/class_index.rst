@@ -1,6 +1,0 @@
-﻿class index
-============
-
-.. automodule:: phyphox
-
-   
