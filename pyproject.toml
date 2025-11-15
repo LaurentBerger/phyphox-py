@@ -20,3 +20,5 @@ license = {text = "LICENSE*"}
 [project.urls]
 Homepage = "https://github.com/LaurentBerger/phyphox-py"
 Issues = "https://github.com/LaurentBerger/phyphox-py/issues"
+documentation = "https://phyphox-py.readthedocs.io/en/latest/"
+
