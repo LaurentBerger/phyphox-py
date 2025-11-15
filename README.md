@@ -24,7 +24,7 @@ or in Windows
 import phyphox
 import time
 
-my_phone = phyphox.PhyphoxLogger("192.168.0.12", 8080)
+my_phone = phyphox.Logger("192.168.0.12", 8080)
 my_phone.get_meta()
 print(my_phone)
 ```
